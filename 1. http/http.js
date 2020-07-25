@@ -3,7 +3,7 @@ var fs = require('fs'); //파일 시스템 모듈
 
 var server = http.createServer();
 
-var host = '192.168.0.11';
+var host = 'localhost';
 var port = 3000;
 
 /*
