@@ -23,7 +23,7 @@ var router = express.Router();
 router.route('/process/setUserCookie').get(function(req, res){
     console.log('/process/setUserCookie 라우팅 함수 호출');
 
-    //쿠키 생성
+    //쿠키 생성(브라우저에서 쿠키 저장)
     res.cookie('user', {
         id : 'phg',
         name : '형길',
