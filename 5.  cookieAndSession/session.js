@@ -50,7 +50,7 @@ router.route('/process/login').post(function(req, res){
         res.redirect('/product.html');
     }else{
         //세션 설정
-        req.session.user = {
+        req.session.user = { 
              id : paramId,
              name : '형길',
              authorized : true
