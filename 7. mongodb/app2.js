@@ -8,12 +8,10 @@ var cookieParser = require('cookie-parser');
 var expressSession = require('express-session');
 var expressErrorHandler = require('express-error-handler');
 
-// mongodb 모듈 사용
 var MongoClient = require('mongodb').MongoClient;
 
 var database;
 
-// 데이터베이스 연결하기
 function connectDB(){
     var databaseUrl = 'mongodb://localhost:27017/phg';
 
@@ -25,8 +23,8 @@ function connectDB(){
 
         console.log('데이터베이스에 연결');
         database = db;
-    });
-}
+    })
+};
 
 var app = express();
 
@@ -47,16 +45,15 @@ app.use(expressSession({
 
 var router = express.Router();
 
-router.route('/process/login').post(function(req, res){
-    console.log('/process/login 라우팅 함수 호출됨');
+router.route('/process/adduser').post(function(req, res){
+    console.log('/process/adduser 라우팅 함수 호출');
 
     var paramId = req.body.id || req.query.id;
     var paramPassword = req.body.password || req.query.password;
-    console.log('요청 파라미터 : ' + paramId + ', ' + paramPassword);
+    var paramName = req.body.name || req.query.name;
 
-    // 데이터 베이스가 연결된 경우
     if(database){
-        authUser(database, paramId, paramPassword, function(err, docs){
+        addUser(database, paramId, paramPassword, paramName, function(err, result){
             if(err){
                 console.log('에러발생');
                 res.writeHead(200, {"Content-Type":"text/html;charset=urt8"});
@@ -64,25 +61,22 @@ router.route('/process/login').post(function(req, res){
                 res.end();
                 return;
             }
-
-            if(docs){
-                console.dir(docs);
+            
+            if(result){
+                console.dir(result);
 
                 res.writeHead(200, {"Content-Type":"text/html;charset=utf8"});
-                res.write('<h1>사용자 로그인 성공</h1>');
-                res.write('<div><p>사용자 :'  + docs[0].name + '</p></div>');
-                res.write('<br><br><a href="/public/login.html">다시 로그인하기</a>');
+                res.write('<h1>사용자 추가 성공</h1>');
+                res.write('<div><p>사용자 :'  + paramName + '</p></div>');
                 res.end();
             }else{
                 console.log('에러발생');
                 res.writeHead(200, {"Content-Type":"text/html;charset=urt8"});
-                res.write('<h1>사용자 데이터가 없음</h1>');
+                res.write('<h1>사용자 추가 안됨</h1>');
                 res.end();
             }
         });
-    }
-    // 데이터 베이스가 연결 되지 않은 경우
-    else{
+    }else{
         console.log('에러발생');
         res.writeHead(200, {"Content-Type":"text/html;charset=urt8"});
         res.write('<h1>데이터베이스 연결 안됨</h1>');
@@ -92,28 +86,26 @@ router.route('/process/login').post(function(req, res){
 
 app.use('/', router);
 
-// db 라는 데이터베이스 객체를 받는다.
-var authUser = function(db, id, password, callback){
-    console.log('authUser 호출됨 :' + id + ',' + password);
+var addUser = function(db, id, password, name, callback){
+    console.log('addUser 호출됨 :' + id + ', ' + password);
 
-    // users 라는 컬렉션을 참조할수 있다.
     var users = db.collection('users');
 
-    users.find({
+    users.insertMany([{
         "id" : id,
-        "password" : password
-    }).toArray(function(err, docs){
-        // 에러가 발생한 경우
+        "password" : password,
+        "name" : name
+    }], function(err,  result){
         if(err){
-            callback(err,null);
+            callback(err, null);
             return;
         }
 
-        if(docs.length > 0){
-            console.log('일치하는 사용자를 찾음');
-            callback(null, docs);
+        if(result.insertedCount > 0){
+            console.log('사용자 추가됨');
+            callback(null, result);
         }else{
-            console.log('일치하는 사용자를 찾지 못함.');
+            console.log('추가된 데이터가 없음');
             callback(null, null);
         }
     });
