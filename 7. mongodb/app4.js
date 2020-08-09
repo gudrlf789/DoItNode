@@ -1,6 +1,6 @@
 var express = require('express');
 var http = require('http');
-var static = require('serve-static');
+var serveStatic = require('serve-static');
 var path = require('path');
 
 var bodyParser = require('body-parser');
@@ -18,7 +18,7 @@ function connectDB(){
     var databaseUrl = 'mongodb://localhost:27017/phg';
 
     mongoose.Promise = global.Promise;
-    mongoose.connect(databaseUrl);
+    mongoose.connect(databaseUrl, { useNewUrlParser: true });
     database = mongoose.connection;
 
     database.on('open', function(){
@@ -27,7 +27,7 @@ function connectDB(){
         // 스키마에 인덱스 설정
         UserSchema = mongoose.Schema({
             id : {type : String, required : true, unique : true},
-            password : {tyep : String, required : true},
+            password : {tyep : String},
             name : {type : String, index : 'hashed'},
             age : {type : Number, 'default' : -1},
             created_at : {type : Date, index : {unique : false}, 'default' : Date.now()},
@@ -35,13 +35,22 @@ function connectDB(){
         });
         console.log('UserSchema 정의');
 
-        // 함수 등록 -> model 객체에서 사용 가능
+        // 스키마에 함수 등록 -> model 객체에서 사용 가능
         UserSchema.static('findById', function(id, callback){
             return this.find({
                 id : id
             }, callback);
         });
 
+        /* 속성으로도 등록해줄 수 있다.
+        UserSchema.statics.findById = function(id, callback){
+            return this.find({
+                id : id
+            }, callback);
+        };
+        */
+
+        // 스키마에 함수 등록 -> model 객체에서 사용 가능
         UserSchema.static('findAll', function(callback){
             this.find({}, callback);
         });
@@ -60,7 +69,7 @@ function connectDB(){
 var app = express();
 
 app.set('port', process.env.PORT || 3000);
-app.use(static('/public', path.join(__dirname, 'public')));
+app.use('/public', serveStatic(path.join(__dirname, 'public')));
 
 app.use(bodyParser.urlencoded({
     extended : false
@@ -76,23 +85,71 @@ app.use(expressSession({
 
 var router = express.Router();
 
+router.route('/process/listuser').post(function(req, res){
+    console.log('/process/listuser 라우팅 함수 호출');
+
+    if(database){
+        UserModel.findAll(function(err, results){
+            if(err){
+                console.log('에러발생');
+                res.writeHead(200, {"Content-Type":"text/html;charset=urt8"});
+                res.write('<h1>에러 발생</h1>');
+                res.end();
+                return;
+            }
+
+            if(results){
+                console.dir(results);
+
+                res.writeHead(200, {"Content-Type" : "text/html;charset=utf8"});
+                res.write("<h3>사용자 리스트</h3>");
+                res.write("<div><ul>");
+
+                for(var i=0 ; i < results.length ; i++){
+                   var curId = results[i]._doc.id;
+                   var curName = results[i]._doc.name;
+                   res.write("     <li>#" + i + " -> " + curId + ", " + curName + "</li>");
+                }
+
+                res.write("</ul></div>");
+                res.end();
+            }else{
+                console.log('에러발생');
+                res.writeHead(200, {"Content-Type":"text/html;charset=urt8"});
+                res.write('<h1>조회된 사용자 없음</h1>');
+                res.end();
+            }
+        });
+    }else{
+        console.log('에러발생');
+        res.writeHead(200, {"Content-Type":"text/html;charset=urt8"});
+        res.write('<h1>데이터베이스 연결 안됨</h1>');
+        res.end();
+    }
+});
+
 app.use('/', router);
 
 var authUser = function(db , id, password, callback){
-    UserModel.find({
-        "id" : id,
-        "password" : password
-    }, function(err, docs){
+
+    // static 으로 등록했던 findById 함수를 사용한다.
+    UserModel.findById(id, function(err, results){
         if(err){
             callback(err, null);
             return;
         }
 
-        if(docs.length > 0){
-            console.log('일치하는 사용자를 찾음');
-            callback(null, docs);
+        console.log('아이디 %s로 검색됨.');
+        if(results.length > 0){
+            if(results[0]._doc.password === password){
+                console.log('비밀번호 일치');
+                callback(null, results);
+            }else{
+                console.log('비밀번호 일치하지 않음');
+                callback(null, null);
+            }
         }else{
-            console.log('일치하는 사용자를 찾지 못함.');
+            console.log('아이디 일치하는 사용자 없음');
             callback(null, null);
         }
     });
