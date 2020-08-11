@@ -37,7 +37,7 @@ function createUserSchema(){
     });
     console.log('UserSchema 정의');
 
-    // virtual 속성 사용
+    // virtual 속성 사용 (실제 데이터베이스에 저장되는것은 아님)
     UserSchema.virtual('info')
         // 속성 설정
         .set(function(info){
