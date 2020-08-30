@@ -1,4 +1,4 @@
-const { connect } = require("mongoose");
+var mongoose = require('mongoose');
 var config = require('../config');
 
 var database = {
