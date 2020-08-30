@@ -13,40 +13,13 @@ var mongoose = require('mongoose');
 // 암호화 모듈
 var crypto = require('crypto');
 
+// 설정 파일 불러오기
 var config = require('./config');
+var database_loader = require('./database/database_loader');
 
 var database;
 var UserSchema;
 var UserModel;
-
-function connectDB(){
-    //var databaseUrl = 'mongodb://localhost:27017/phg';
-    var databaseUrl = config.db_url;
-
-    mongoose.Promise = global.Promise;
-    mongoose.connect(databaseUrl, { useNewUrlParser: true });
-    database = mongoose.connection;
-
-    database.on('open', function(){
-        console.log('데이터베이스 연결 : ' + databaseUrl);
-
-        createUserSchema(database);
-    });
-
-    database.on('disconnected', function(){
-        console.log('데이터베이스 연결 끊어짐');
-    });
-
-    database.on('error', console.error.bind(console, 'mongoose 연결 에러'));
-};
-
-// db 연결부분을 별로의 파일로 분리 (모듈화)
-function createUserSchema(database){
-    database.UserSchema = require('./database/user_schema').createSchema(mongoose);
-
-    database.UserModel = mongoose.model('cryptUsers', UserSchema);
-    console.log('UserModle 정의함');
-};
 
 var app = express();
 
@@ -171,5 +144,5 @@ app.use(errorHandler);
 var server = http.createServer(app).listen(app.get('port'), function(){
     console.log('익스프레스로 웹 서버 실행 : ' + app.get('port'));
 
-    connectDB();
+    database_loader.init(app, config);
 });
