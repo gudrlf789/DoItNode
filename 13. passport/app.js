@@ -50,6 +50,39 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 
+//====== Passport Strategy 설정 =====//
+var LocalStrategy = require('passport-local').Strategy;
+
+passport.use('local-login', new LocalStrategy({
+    usernameField : 'email',
+    passwordField : 'password',
+    passReqToCallback : true
+}, function(req, email, password, done){
+    console.log('passport의 local-login 호출됨 : ' + email + ', ' + password);
+
+    var database = app.get('database');
+    database.UserModel.findOne({'email' : email}, function(err, user){
+        if(err){
+            console.log('에러 발생함.');0
+            return done(err);
+        }
+
+        if(!user){
+            console.log('사용자 아이디가 일치하지 않습니다.');
+            return done(null, false, req.flash('loginMessage', '등록된 계정이 없습니다.'));
+        }
+
+        var authenticated = user.authenticate(password, user._doc.salt, user._doc.hashed_password);
+
+        if(!authenticated){
+            console.log('비밀번호가 일치하지 않습니다.');
+            return done(null, false, req.flash('loginMessage', '비밀번호가 일치하지 않습니다.'));
+        }
+
+        console.log('아이디와 비밀번호가 일치합니다.');
+        return done(null, user);
+    });
+}));
 
 // 라우팅 함수 초기화
 route_loader.init(app, express.Router());
@@ -59,4 +92,4 @@ var errorHandler = expressErrorHandler({
     static : {
         '404' : './public/404.html'
     }
-})
+});
