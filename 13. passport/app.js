@@ -27,8 +27,8 @@ const passport = require('passport');
 var app = express();
 
 app.set('views', __dirname + '/views');
-// app.set('view engine', 'ejs');
-app.set('view engine', 'pug');
+app.set('view engine', 'ejs');
+//app.set('view engine', 'pug');
 
 console.log('config 서버 포트 :' + config.server_port);
 app.set('port', config.server_port || 3000);
@@ -117,7 +117,7 @@ passport.use('local-signup', new LocalStrategy({
     });
 }));
 
-// 사용자 인증을 처음에 성공한 경우
+// 사용자 인증에 성공했을 때 호출
 passport.serializeUser(function(user, done){
     console.log('serializeUser 호출됨.');
     console.dir(user);
@@ -125,7 +125,7 @@ passport.serializeUser(function(user, done){
     done(null, user);
 });
 
-// 요청들에 대한 확인 작업시
+// 사용자 인증 이후 사용자 요청이 있을때마다 호출 (로그인 상태인 경우)
 passport.deserializeUser(function(user, done){
     console.log('deserializeUser 호출됨');
     console.dir(user);
@@ -134,9 +134,43 @@ passport.deserializeUser(function(user, done){
 });
 
 
-
+var router = express.Router();
 // 라우팅 함수 초기화
-route_loader.init(app, express.Router());
+route_loader.init(app, router);
+
+//======= 회원가입과 로그인 라우팅 함수 ======//
+router.route('/').get(function(req, res){
+    console.log('/ 패스로 요청됨');
+
+    res.render('index.ejs');
+});
+
+router.route('/login').get(function(req, res){
+    console.log('/login 패스로 GET 요청됨');
+
+    res.render('login.ejs', {message : req.flash('loginMessage')});
+});
+
+router.route('/login').post(passport.authenticate('local-login', {
+    successRedirect : '/profile',
+    failureRedirect : '/login',
+    failureFlash : true
+}));
+
+router.route('/signup').get(function(req, res){
+    console.log('/signup 패스로 GET 요청됨');
+
+    res.render('signup.ejs', {message : req.flash('signupMessage')});
+});
+
+// 사용자 등록
+router.route('/signup').post(passport.authenticate('local-signup', {
+    successRedirect : '/profile',
+    failureRedirect : '/signup',
+    failureFlash : true
+}));
+
+
 
 // 404 에러 페이지 처리
 var errorHandler = expressErrorHandler({
@@ -144,3 +178,6 @@ var errorHandler = expressErrorHandler({
         '404' : './public/404.html'
     }
 });
+
+app.use(expressErrorHandler.httpError(404));
+app.use(errorHandler);
