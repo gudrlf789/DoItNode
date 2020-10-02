@@ -117,6 +117,24 @@ passport.use('local-signup', new LocalStrategy({
     });
 }));
 
+// 사용자 인증을 처음에 성공한 경우
+passport.serializeUser(function(user, done){
+    console.log('serializeUser 호출됨.');
+    console.dir(user);
+
+    done(null, user);
+});
+
+// 요청들에 대한 확인 작업시
+passport.deserializeUser(function(user, done){
+    console.log('deserializeUser 호출됨');
+    console.dir(user);
+
+    done(null, user);
+});
+
+
+
 // 라우팅 함수 초기화
 route_loader.init(app, express.Router());
 
