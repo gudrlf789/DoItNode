@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>채팅 클라이언트 01</title>
+
+        <script src="jquery-3.5.1.js"></script>
+        <script src="socket.io.js"></script>
+
+        <script>
+            $(function(){
+
+            });
+
+            function connect(){
+                var host = $('#hostInput').val();
+                var port = $('#portInput').val();
+
+                connectToServer(host, port);
+            }
+            
+            function connectToServer(host, port){
+
+            }
+        </script>
+    </head>
+    <body>
+        <h3>채팅 클라이언트 01</h3>
+        <br>
+        <div>
+            <input type="text" id="hostInput" value="localhost" >
+            <input type="text" id="portInput" value="3000" >
+            <input type="button" id="connectButton" value="연결하기" onclick="connect()">
+        </div>
+        <hr>
+        <p>결과</p>
+        <div id="results"></div>
+    </body>
+</html>
