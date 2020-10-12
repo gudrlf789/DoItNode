@@ -20,7 +20,26 @@
             }
             
             function connectToServer(host, port){
+                var url = 'http://' + host + ':' + port;
+                var options = {
+                    forceNew : true //연결을 새로 만드는 옵션
+                };
 
+                //io 객체 참조 (서버와 연결)
+                var socket = io.connect(url, options);
+
+                socket.on('connect', function(){
+                    println('웹소켓 서버에 연결됨 ->' + url);
+                });
+
+                socket.on('disconnect', function(){
+                    println('웹소켓 서버 종료');
+                });
+            }
+
+            function println(data){
+                console.log(data);
+                $('#results').append('<p>' + data + '</p>');
             }
         </script>
     </head>

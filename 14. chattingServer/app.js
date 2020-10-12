@@ -39,7 +39,7 @@ console.log('socket.io 요청을 받아들일 준비완료');
 
 
 io.sockets.on('connection', function(socket){
-    console.log('connection info -> ' + socket.request.connection._peername);
+    console.log('connection info -> ' + JSON.stringify(socket.request.connection._peername));
 
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
