@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <title>채팅 클라이언트 01</title>
+        <title>채팅 클라이언트 02</title>
 
         <script src="jquery-3.5.1.js"></script>
         <script src="socket.io.js"></script>
@@ -43,6 +43,22 @@
                 });
             }
 
+            function login(){
+                var id = $('#idInput').val();
+                var password = $('#passwordInput').val();
+                var alias = $('#aliasInput').val();
+                var today = $('#todayInput').val();
+                
+                var output = {
+                    id : id,
+                    password : password,
+                    alias : alias,
+                    today : today
+                };
+
+                socket.emit('login', output);
+            }
+
             function send(){
                 var sender = $('#senderInput').val();
                 var recepient = $('#recepientInput').val();
@@ -70,12 +86,27 @@
         <h3>채팅 클라이언트 01</h3>
         <br>
         <div>
+            <h5>서버 연결</h5>
             <input type="text" id="hostInput" value="localhost" >
             <input type="text" id="portInput" value="3000" >
             <input type="button" id="connectButton" value="연결하기" onclick="connect()">
         </div>
         <br>
+        <br>
         <div>
+            <h5>로그인</h5>
+            <input type="text" id="hostInput" value="test01" >
+            <input type="password" id="passwordInput" value="1234" >
+            <input type="text" id="aliasInput" value="코딩" >
+            <input type="text" id="todayInput" value="어렵다." >
+
+            <input type="button" id="loginButton"" value="로그인" onclick="login()">
+            <input type="button" id="logoutButton"" value="로그아웃" onclick="logout()">
+        </div>
+        <br>
+        <br>
+        <div>
+            <h5>메시지 전송</h5>
             <div>
                 <span>보내는 사람 : </span>
                 <input type="text" id="senderInput" value="test01">
