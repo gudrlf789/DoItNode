@@ -8,6 +8,8 @@
         <script src="socket.io.js"></script>
 
         <script>
+            var socket;
+
             $(function(){
 
             });
@@ -26,7 +28,7 @@
                 };
 
                 //io 객체 참조 (서버와 연결)
-                var socket = io.connect(url, options);
+                socket = io.connect(url, options);
 
                 socket.on('connect', function(){
                     println('웹소켓 서버에 연결됨 ->' + url);
@@ -35,6 +37,23 @@
                 socket.on('disconnect', function(){
                     println('웹소켓 서버 종료');
                 });
+            }
+
+            function send(){
+                var sender = $('#senderInput').val();
+                var recepient = $('#recepientInput').val();
+                var data = $('#dataInput').val();
+                
+                // message 객체 생성
+                var message = {
+                    sender : sender,
+                    recepient : recepient,
+                    command : 'chat',
+                    type : 'text',
+                    data : data
+                };
+                
+                socket.emit('message', message);
             }
 
             function println(data){
@@ -50,6 +69,23 @@
             <input type="text" id="hostInput" value="localhost" >
             <input type="text" id="portInput" value="3000" >
             <input type="button" id="connectButton" value="연결하기" onclick="connect()">
+        </div>
+        <br>
+        <div>
+            <div>
+                <span>보내는 사람 : </span>
+                <input type="text" id="senderInput" value="test01">
+            </div>
+            <div>
+                <span>받는 사람 : </span>
+                <input type="text" id="recepientInput" value="ALL">
+            </div>
+            <div>
+                <span>전송할 데이터 : </span>
+                <input type="text" id="dataInput" value="안녕">
+            </div>
+            <br>
+            <input type="button" id="sendButton" value="전송" onclick="send()">
         </div>
         <hr>
         <p>결과</p>

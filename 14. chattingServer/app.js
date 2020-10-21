@@ -43,4 +43,15 @@ io.sockets.on('connection', function(socket){
 
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
+
+    socket.on('message', function(message){
+        console.log('message 받음 -> ' + JSON.stringify(message));
+        
+        if(message.recepient == 'ALL'){
+            console.log('모든 클라이언트에게 메시지 전송하기');
+            
+            // io.sockets -> 연결된 모든 소켓을 의미한다.
+            io.sockets.emit('message', message);
+        }
+    });
 });
