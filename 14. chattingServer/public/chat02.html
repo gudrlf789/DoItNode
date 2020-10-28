@@ -41,6 +41,10 @@
                 socket.on('message', function(message){
                     println('수신 ->' + JSON.stringify(message));
                 });
+
+                socket.on('response', function(input){
+                    println('응답 -> ' + JSON.stringify(input));
+                });
             }
 
             function login(){

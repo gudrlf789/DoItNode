@@ -37,12 +37,23 @@ var server = http.createServer(app).listen(app.get('port'), function(){
 var io = socketio.listen(server);
 console.log('socket.io 요청을 받아들일 준비완료');
 
+// 로그인 아이디와 소켓아이디를 매칭
+var login_ids = {};
 
 io.sockets.on('connection', function(socket){
     console.log('connection info -> ' + JSON.stringify(socket.request.connection._peername));
 
     socket.remoteAddress = socket.request.connection._peername.address;
     socket.remotePort = socket.request.connection._peername.port;
+
+    socket.on('login', function(input){
+        console.log('login 받음 -> ' + JSON.stringify(input));
+
+        login_ids[input.id] = socket.id;
+        socket.login_id = input.id;
+
+        sendResponse(socket, 'login', 200, 'OK');
+    });
 
     socket.on('message', function(message){
         console.log('message 받음 -> ' + JSON.stringify(message));
@@ -52,6 +63,23 @@ io.sockets.on('connection', function(socket){
             
             // io.sockets -> 연결된 모든 소켓을 의미한다.
             io.sockets.emit('message', message);
+        }else {
+            if(login_ids[message.recepient]){
+                io.socket.connected[login_ids[message.recepient]].emit('message', message);
+
+                sendResponse(socket, 'message', 200, 'OK');
+            }else{
+                sendResponse(socket, 'message', 400, '수신자 ID를 찾을 수 없습니다.');
+            }
         }
     });
 });
+
+function sendResponse(socket, command, code, message){
+    var output = {
+        command : command,
+        code : code,
+        message : message
+    };
+    socket.emit('response', output);
+}
