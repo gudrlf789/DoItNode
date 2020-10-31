@@ -78,12 +78,14 @@
                 var sender = $('#senderInput').val();
                 var recepient = $('#recepientInput').val();
                 var data = $('#dataInput').val();
+
+                var chattype = $('#chattype option:selected').val();
                 
                 // message 객체 생성
                 var message = {
                     sender : sender,
                     recepient : recepient,
-                    command : 'chat',
+                    command : chattype,
                     type : 'text',
                     data : data
                 };
@@ -135,6 +137,28 @@
 
                 socket.emit('room', output);
             }
+            
+            function joinRoom(){
+                var roomId = $('#roomIdInput').val();
+
+                var output = {
+                    command : 'join',
+                    roomId : roomId
+                };
+
+                socket.emit('room', output);
+            }
+
+            function leaveRoom(){
+                var roomId = $('#roomIdInput').val();
+
+                var output = {
+                    command : 'leave',
+                    roomId : roomId
+                };
+
+                socket.emit('room', output);
+            }
 
             function println(data){
                 console.log(data);
@@ -180,15 +204,21 @@
                 <input type="text" id="dataInput" value="안녕">
             </div>
             <br>
+            <select name="chattype" id="chattype">
+                <option value="chat">채팅</option>
+                <option value="groupchat">그룹 채팅</option>
+            </select>
+            <br>
             <input type="button" id="sendButton" value="전송" onclick="send()">
         </div>
         <br>
         <br>
         <div>
             <h5>방 리스트</h5>
-            <div id="roomList">
-                
-            </div>
+            <div id="roomList"></div>
+            <br>
+            <input tyep="button" id="joinRoomButton" value="방 입장하기" onclick="joinRoom()">
+            <input tyep="button" id="leaveRoomButton" value="방 나가기" onclick="leaveRoom()">
             <br>
             <h5>방 만들기</h5>
             <div>
