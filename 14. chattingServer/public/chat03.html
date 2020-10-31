@@ -42,6 +42,17 @@
                     println('수신 ->' + JSON.stringify(message));
                 });
 
+                // room 이벤트를 받는다.
+                socket.on('room', function(input){
+                    if(input.command == 'list'){
+                        $('#roomList').html('');
+                        for (var i=0 ; i < input.rooms.length ; i++){
+                            $('#roomList').append('<p>방 #' + i + ' -> ' + input.rooms[i].id + ', ' + input.rooms[i].name
+                                + ', ' + input.rooms[i].owner);
+                        }
+                    }
+                });
+
                 socket.on('response', function(input){
                     println('응답 -> ' + JSON.stringify(input));
                 });
@@ -174,14 +185,19 @@
         <br>
         <br>
         <div>
+            <h5>방 리스트</h5>
+            <div id="roomList">
+                
+            </div>
+            <br>
             <h5>방 만들기</h5>
             <div>
                 <sapn>방 아이디 : </sapn>
-                <input type="text" id="rootIdInput" value="meeting01">
+                <input type="text" id="roomIdInput" value="meeting01">
             </div>
             <div>
                 <sapn>방 이름 : </sapn>
-                <input type="text" id="rootNameInput" value="대화">
+                <input type="text" id="roomNameInput" value="대화">
             </div>
             <br>
             <input type="button" id="createRoomButton" value="방 만들기" onclick="createRoom()">

@@ -129,7 +129,7 @@ function getRoomList(){
 
     Object.keys(io.sockets.adapter.rooms).forEach(function(roomId){
         console.log('현재 방 ID : ' + roomId);
-        var curRoom = io.sockets.adapter.room[roomId];
+        var curRoom = io.sockets.adapter.rooms[roomId];
 
         var found = false;
         Object.keys(curRoom.sockets).forEach(function(key){
