@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>채팅 클라이언트 02</title>
+
+        <script src="jquery-3.5.1.js"></script>
+        <script src="socket.io.js"></script>
+
+        <script>
+            var socket;
+
+            $(function(){
+
+            });
+
+            function connect(){
+                var host = $('#hostInput').val();
+                var port = $('#portInput').val();
+
+                connectToServer(host, port);
+            }
+            
+            function connectToServer(host, port){
+                var url = 'http://' + host + ':' + port;
+                var options = {
+                    forceNew : true //연결을 새로 만드는 옵션
+                };
+
+                //io 객체 참조 (서버와 연결)
+                socket = io.connect(url, options);
+
+                socket.on('connect', function(){
+                    println('웹소켓 서버에 연결됨 ->' + url);
+                });
+
+                socket.on('disconnect', function(){
+                    println('웹소켓 서버 종료');
+                });
+
+                socket.on('message', function(message){
+                    println('수신 ->' + JSON.stringify(message));
+                });
+
+                socket.on('response', function(input){
+                    println('응답 -> ' + JSON.stringify(input));
+                });
+            }
+
+            function login(){
+                var id = $('#idInput').val();
+                var password = $('#passwordInput').val();
+                var alias = $('#aliasInput').val();
+                var today = $('#todayInput').val();
+                
+                var output = {
+                    id : id,
+                    password : password,
+                    alias : alias,
+                    today : today
+                };
+
+                socket.emit('login', output);
+            }
+
+            function send(){
+                var sender = $('#senderInput').val();
+                var recepient = $('#recepientInput').val();
+                var data = $('#dataInput').val();
+                
+                // message 객체 생성
+                var message = {
+                    sender : sender,
+                    recepient : recepient,
+                    command : 'chat',
+                    type : 'text',
+                    data : data
+                };
+                
+                socket.emit('message', message);
+            }
+            
+            // 방을 만드는 함수
+            function createRoom(){
+                var roomId = $('#roomIdInput').val();
+                var roomName = $('#roomNameInput').val();
+                var id = $('#idInput').val();
+
+                var output = {
+                    command : 'create',
+                    roomId : roomId,
+                    roomName : roomName,
+                    roomOwner : id
+                };
+
+                socket.emit('room', output);
+            }
+
+            function updateRoom(){
+                var roomId = $('#roomIdInput').val();
+                var roomName = $('#roomNameInput').val();
+                var id = $('#idInput').val();
+
+                var output = {
+                    command : 'update',
+                    roomId : roomId,
+                    roomName : roomName,
+                    roomOwner : id
+                };
+
+                socket.emit('room', output);
+            }
+
+            function deleteRoom(){
+                var roomId = $('#roomIdInput').val();
+                var id = $('#idInput').val();
+
+                var output = {
+                    command : 'delete',
+                    roomId : roomId,
+                    roomName : '',
+                    roomOwner : id
+                };
+
+                socket.emit('room', output);
+            }
+
+            function println(data){
+                console.log(data);
+                $('#results').append('<p>' + data + '</p>');
+            }
+        </script>
+    </head>
+    <body>
+        <h3>채팅 클라이언트 01</h3>
+        <br>
+        <div>
+            <h5>서버 연결</h5>
+            <input type="text" id="hostInput" value="localhost" >
+            <input type="text" id="portInput" value="3000" >
+            <input type="button" id="connectButton" value="연결하기" onclick="connect()">
+        </div>
+        <br>
+        <br>
+        <div>
+            <h5>로그인</h5>
+            <input type="text" id="hostInput" value="test01" >
+            <input type="password" id="passwordInput" value="1234" >
+            <input type="text" id="aliasInput" value="코딩" >
+            <input type="text" id="todayInput" value="어렵다." >
+
+            <input type="button" id="loginButton"" value="로그인" onclick="login()">
+            <input type="button" id="logoutButton"" value="로그아웃" onclick="logout()">
+        </div>
+        <br>
+        <br>
+        <div>
+            <h5>메시지 전송</h5>
+            <div>
+                <span>보내는 사람 : </span>
+                <input type="text" id="senderInput" value="test01">
+            </div>
+            <div>
+                <span>받는 사람 : </span>
+                <input type="text" id="recepientInput" value="ALL">
+            </div>
+            <div>
+                <span>전송할 데이터 : </span>
+                <input type="text" id="dataInput" value="안녕">
+            </div>
+            <br>
+            <input type="button" id="sendButton" value="전송" onclick="send()">
+        </div>
+        <br>
+        <br>
+        <div>
+            <h5>방 만들기</h5>
+            <div>
+                <sapn>방 아이디 : </sapn>
+                <input type="text" id="rootIdInput" value="meeting01">
+            </div>
+            <div>
+                <sapn>방 이름 : </sapn>
+                <input type="text" id="rootNameInput" value="대화">
+            </div>
+            <br>
+            <input type="button" id="createRoomButton" value="방 만들기" onclick="createRoom()">
+            <input type="button" id="updateRoomButton" value="방 이름 바꾸기" onclick="updateRoom()">
+            <input type="button" id="deleteRoomButton" value="방 없애기" onclick="deleteRoom()">
+        </div>
+        <hr>
+        <p>결과</p>
+        <div id="results"></div>
+    </body>
+</html>
