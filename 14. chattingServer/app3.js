@@ -64,12 +64,19 @@ io.sockets.on('connection', function(socket){
             // io.sockets -> 연결된 모든 소켓을 의미한다.
             io.sockets.emit('message', message);
         }else {
-            if(login_ids[message.recepient]){
-                io.socket.connected[login_ids[message.recepient]].emit('message', message);
+            if(message.command == 'chat'){
+                if(login_ids[message.recepient]){
+                    io.socket.connected[login_ids[message.recepient]].emit('message', message);
+    
+                    sendResponse(socket, 'message', 200, 'OK');
+                }else{
+                    sendResponse(socket, 'message', 400, '수신자 ID를 찾을 수 없습니다.');
+                }
+            }else if(message.command == 'groupchat'){
+                //같은 방에 있는 사람들한테 메세지를 보낸다.
+                io.sockets.in(message.recepient).emit('message', message);
 
                 sendResponse(socket, 'message', 200, 'OK');
-            }else{
-                sendResponse(socket, 'message', 400, '수신자 ID를 찾을 수 없습니다.');
             }
         }
     });
@@ -92,13 +99,15 @@ io.sockets.on('connection', function(socket){
                 curRoom.name = input.roomName;
                 curRoom.owner = input.roomOwner;
             }
-        
+            
+            sendRoomList();
         }else if(input.command == 'update'){    
             var curRoom = io.sockets.adapter.rooms[input.roomId];
 
             curRoom.name = input.roomName;
             curRoom.owner = input.roomOwner;
 
+            sendRoomList();
         }else if(input.command == 'delete'){
             // 방에서 빠져 나온다.
             socket.leave(input.roomId);
@@ -108,18 +117,31 @@ io.sockets.on('connection', function(socket){
             }else{
                 console.log('방이 만들어져 있지 않습니다.');
             }
+            
+            sendRoomList();
+        }else if(input.command == 'join'){
+            socket.join(input.roomId);
+            
+            sendResponse(socket, 'room', 200, 'OK');
+        }else if(input.command == 'leave'){
+            socket.leave(input.roomId);
+
+            sendResponse(socket, 'room', 200, 'OK');
         }
         
-        var roomList = getRoomList();
-        var output = {
-            command : 'list',
-            rooms : roomList
-        };
-
-        // 방이 새로 만들어지면 모든 사용자한테 이벤트를 보낸다.
-        io.sockets.emit('room', output);
     });
 });
+
+function sendRoomList(){
+    var roomList = getRoomList();
+    var output = {
+        command : 'list',
+        rooms : roomList
+    };
+
+    // 방이 새로 만들어지면 모든 사용자한테 이벤트를 보낸다.
+    io.sockets.emit('room', output);
+}
 
 function getRoomList(){
     console.log('getRoomList 호출');
