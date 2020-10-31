@@ -93,13 +93,58 @@ io.sockets.on('connection', function(socket){
                 curRoom.owner = input.roomOwner;
             }
         
-        }else if(input.command == 'update'){
+        }else if(input.command == 'update'){    
+            var curRoom = io.sockets.adapter.rooms[input.roomId];
+
+            curRoom.name = input.roomName;
+            curRoom.owner = input.roomOwner;
 
         }else if(input.command == 'delete'){
+            // 방에서 빠져 나온다.
+            socket.leave(input.roomId);
 
+            if(io.sockets.adapter.rooms[input.roomId]){
+                delete io.sockets.adapter.rooms[input.roomId];
+            }else{
+                console.log('방이 만들어져 있지 않습니다.');
+            }
         }
+        
+        var roomList = getRoomList();
+        var output = {
+            command : 'list',
+            rooms : roomList
+        };
+
+        // 방이 새로 만들어지면 모든 사용자한테 이벤트를 보낸다.
+        io.sockets.emit('room', output);
     });
 });
+
+function getRoomList(){
+    console.log('getRoomList 호출');
+    console.log('ROOMS -> ' + JSON.stringify(io.sockets.adapter.roomList));
+
+    var rooms = [];
+
+    Object.keys(io.sockets.adapter.rooms).forEach(function(roomId){
+        console.log('현재 방 ID : ' + roomId);
+        var curRoom = io.sockets.adapter.room[roomId];
+
+        var found = false;
+        Object.keys(curRoom.sockets).forEach(function(key){
+            if(roomId == key){
+                found = true;
+            }
+        });
+
+        if(!found){
+            rooms.push(curRoom);
+        }
+    });
+
+    return rooms;
+}
 
 function sendResponse(socket, command, code, message){
     var output = {
